@@ -1,37 +1,114 @@
 import numpy as np
+from numpy.linalg import solve
 import matplotlib.pyplot as plt
+from math import *
 
 Safe_distance = 0.5
 
+
 class Point:
-    def __init__(self, x, y, dy, ddy):
+    def __init__(
+        self,
+        x: float,
+        y: float,
+        dy: float,
+        ddy: float,
+        kappa: float,
+        dkappa: float,
+        s: float,
+        angle: float,
+    ):
         self.x = x
         self.y = y
         self.dy = dy
         self.ddy = ddy
-        
-        
-class Line:
-    def __init__(self, c0:float, c1:float, c2:float, c3:float):
-        self.c0 = c0
-        self.c1 = c1
-        self.c2 = c2
-        self.c3 = c3
+        self.kappa = kappa
+        self.dkappa = dkappa
+        self.s = s
+        self.angle = angle
 
-class Ref_line:
-    def __init__(self, name : str):
-        self.name = name
-        self.C0 = 0.0
-        self.C1 = 0.0
-        self.C2 = 0.0
-        self.C3 = 0.0
-        self.x = []
-        self.y = []
-        self.dy = []
-        self.ddy = []
-        
-    def calc_reference_line(self, start_point:Point, end_point:Point, dx:float):
-        c0 = start_point.y
-        c1 = start_point.dy
-        c2 = start_point.ddy
-        
+
+class reference_line:
+    def __init__(self, a0: float, a1: float, a2: float):
+        self.a0 = a0
+        self.a1 = a1
+        self.a2 = a2
+        self.points = []
+
+    def get_point(self, dist: float):
+        x = dist
+        y = self.a0 + self.a1 * dist + self.a2 * dist**2
+        dy = self.a1 + 2 * self.a2 * dist
+        ddy = 2 * self.a2
+        kappa = dy / (1 + dy**2) ** (3 / 2)
+        dkappa = (ddy * dy - dy**3) / (1 + dy**2) ** (5 / 2)
+        angle = atan(dy)
+        return x, y, dy, ddy, kappa, dkappa, angle
+
+    def get_ref_points(self, pre_view_d: float):
+        points = []
+        x_scat = np.linspace(0, pre_view_d, 200)
+        print(x_scat)
+        for i in range(len(x_scat)):
+            print("i = ", i, "x = ", x_scat[i])
+            if i == 0:
+                x, y, dy, ddy, kappa, dkappa, angle = self.get_point(x_scat[i])
+                points.append(Point(x, y, dy, ddy, kappa, dkappa, 0.0, angle))
+            else:
+                x, y, dy, ddy, kappa, dkappa, angle = self.get_point(x_scat[i])
+                dx = x - points[-1].x
+                dy = y - points[-1].y
+                s = points[-1].s + np.sqrt(dx**2 + dy**2)
+                points.append(Point(x, y, dy, ddy, kappa, dkappa, s, angle))
+        self.points = points
+        return points
+
+    def get_nearest_point(self, x, y):
+        min_dist = np.inf
+        nearest_point = Point(0, 0, 0, 0, 0, 0, 0, 0)
+        for point in self.points:
+            dist = np.sqrt((point.x - x) ** 2 + (point.y - y) ** 2)
+            if dist < min_dist:
+                min_dist = dist
+                nearest_point = point
+        return nearest_point
+
+    def get_point_from_S(self, nearest_point: Point, ds: float):
+        s = nearest_point.s + ds
+        for i in range(len(self.points)):
+            if self.points[i].s > s:
+                rho_s = self.points[i].s - s
+                x = self.points[i].x + rho_s * (self.points[i].x - self.points[i - 1].x)
+                y = self.points[i].y + rho_s * (self.points[i].y - self.points[i - 1].y)
+                dy = self.points[i].dy + rho_s * (
+                    self.points[i].dy - self.points[i - 1].dy
+                )
+                ddy = self.points[i].ddy + rho_s * (
+                    self.points[i].ddy - self.points[i - 1].ddy
+                )
+                kappa = self.points[i].kappa + rho_s * (
+                    self.points[i].kappa - self.points[i - 1].kappa
+                )
+                dkappa = self.points[i].dkappa + rho_s * (
+                    self.points[i].dkappa - self.points[i - 1].dkappa
+                )
+                angle = self.points[i].angle + rho_s * (
+                    self.points[i].angle - self.points[i - 1].angle
+                )
+                return Point(x, y, dy, ddy, kappa, dkappa, s, angle)
+
+# do some test
+if __name__ == "__main__":
+
+    preview_dt = 20.0  # s
+    velocity = 10.0
+
+    preview_dist = velocity * preview_dt
+    ref_line = reference_line(10.0, 0.005, 0.0005)
+    plan_traj = ref_line.get_ref_points(preview_dist)
+    X = [p.x for p in plan_traj]
+    Y = [p.y for p in plan_traj]
+    plt.xlim(-5, 200)
+    plt.ylim(-5, 100)
+    plt.scatter(X, Y, s=1, c="r")
+    plt.show()
