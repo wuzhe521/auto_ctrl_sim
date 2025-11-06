@@ -37,6 +37,12 @@ class vehicle_model:
         self.Length = 5.0
 
     def kinematic_Update(self, kappa_rate, dt):
+        '''
+        generate kinematic motion using kinematic model
+             input:
+                kappa_rate: kappa rate
+                dt: sample time
+        '''
         kappa_rate = max(min(kappa_rate, 0.05), -0.05)
         self.kappa = self.kappa + kappa_rate * dt
         delta_theta = self.kappa * self.velocity * dt
@@ -54,6 +60,11 @@ class vehicle_model:
         self.velocity = self.velocity + self.acceleration * dt
 
     def position(self):
+        '''
+        get vehicle 2D position in global coordinate
+            output:
+                points: 4 corner points of vehicle in global coordinate
+        '''
         left_front_x = (
             self.X
             + self.Length * np.cos(self.angle)
@@ -85,6 +96,11 @@ class vehicle_model:
         return [left_front, right_front, right_rear, left_rear]
 
     def get_vehicle_status(self):
+        '''
+        get vehicle status
+            output:
+                vehicle_status: vehicle status
+        '''
         return vehicle_status(
             self.X, self.Y, self.angle, self.kappa, self.velocity, self.acceleration
         )

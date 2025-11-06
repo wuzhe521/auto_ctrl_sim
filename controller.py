@@ -28,7 +28,23 @@ class MPC_Controller:
         # initial status
         self.init_status = vehicle_status(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
-    def Update(self, init_status: vehicle_status, trajectory):
+    def Update(self, init_status: vehicle_status, trajectory) -> float:
+        '''
+        Calculate the control command using Kinematic model and OSQP.
+        
+        more details:
+        
+            https://my-ichery.feishu.cn/docx/JjUOdyVE2okg1kxGW3FcTbbBnge 
+            
+            https://github.com/osqp/osqp
+            
+        input:
+            init_status: initial status
+            trajectory: reference trajectory
+            
+        output:
+            control command[ kappa rate]       
+        '''
         self.init_status = init_status
         self.ref = trajectory  # update reference
         x0 = init_status.x
@@ -117,6 +133,11 @@ class MPC_Controller:
         return ctrl[0]
 
     def get_ref_points(self, ref_points: list):
+        '''
+        get reference points
+            input 
+                ref_points: reference points
+        '''
         self.ref = ref_points
         return True
 

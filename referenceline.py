@@ -36,6 +36,13 @@ class reference_line:
         self.points = []
 
     def get_point(self, dist: float):
+        '''
+        根据给定距离[X - direction]，返回参考线点。
+            Args:
+                dist (float): X - direction distance.
+            Returns:
+                x, y, dy, ddy, kappa, dkappa, angle
+        '''
         x = dist
         y = self.a0 + self.a1 * dist + self.a2 * dist**2
         dy = self.a1 + 2 * self.a2 * dist
@@ -46,6 +53,15 @@ class reference_line:
         return x, y, dy, ddy, kappa, dkappa, angle
 
     def get_ref_points(self, pre_view_d: float):
+        """
+        根据预瞄的距离，生成参考线。
+
+            Args:
+                preview_d (float): Global 坐标下, X方向上的预瞄的距离。
+
+            Returns:
+                points (list) : 离散后的参考线点集合。
+        """
         points = []
         x_scat = np.linspace(0, pre_view_d, 200)
         for i in range(len(x_scat)):
@@ -62,6 +78,14 @@ class reference_line:
         return points
 
     def get_nearest_point(self, x : float, y :float):
+        '''
+        calculate the nearest point
+            Args:
+                x (float): x
+                y (float): y
+            Returns:
+                nearest_point (Point)
+        '''
         min_dist = np.inf
         nearest_point = Point(0, 0, 0, 0, 0, 0, 0, 0)
         for point in self.points:
@@ -72,6 +96,16 @@ class reference_line:
         return nearest_point
 
     def get_point_from_S(self, nearest_point: Point, ds: float):
+        """
+        根据s值，返回参考线点。
+
+            Args:
+                nearest_point (Point): 最近点
+                ds (float): s值
+
+            Returns:
+                x, y, dy, ddy, kappa, dkappa, angle
+        """
         s = nearest_point.s + ds
         for i in range(len(self.points)):
             if self.points[i].s > s:
