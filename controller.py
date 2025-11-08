@@ -139,7 +139,7 @@ class LatKmMpc_Controller:
         # Create an OSQP object
         prob = osqp.OSQP()
 
-        prob.setup(P, q, A, l, u, warm_starting=True, verbose=False)
+        prob.setup(P, q, A, l, u, warm_start=True, verbose=False)
         res = prob.solve()
         # get control
         ctrl = res.x[-horizon * nu : -(horizon - 1) * nu]
