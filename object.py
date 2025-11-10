@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from referenceline import reference_line, Point
 from vehicle_model import vehicle_model
-
+from math import *
 
 class object:
     def __init__(
@@ -14,6 +14,7 @@ class object:
         s0: float,
         velocity: float,
         ref_line: reference_line,
+        offset: float = 0.0
     ):
         self.Width = Width
         self.Length = Length
@@ -21,14 +22,15 @@ class object:
         self.s = s0
         self.velocity = velocity
         self.ref_l = ref_line
-
+        self.offset = offset
         self.loc = self.ref_l.get_point_from_S(self.ref_l.points[0], self.s)
 
     def Update(self, ts: float):
         ds = self.velocity * ts
         self.s += ds
         self.loc = self.ref_l.get_point_from_S(self.loc, ds)
-
+        self.loc.x  -= self.offset * cos(self.loc.angle)
+        self.loc.y  += self.offset * sin(self.loc.angle)
     def position(self):
         """
         get vehicle 2D position in global coordinate

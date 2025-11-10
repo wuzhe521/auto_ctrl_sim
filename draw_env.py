@@ -42,7 +42,7 @@ if __name__ == "__main__":
 
     ego = vehicle_model("ego", 0.01, 0.002, 15.0, -4, 0, 20)  # create a vehicle model
     sensor = target_sensor(ego)
-    sensor.register(object("car", 1.9, 5.0, 20.0, 15.0, ref_lin))
+    sensor.register(object("car", 1.9, 5.0, 20.0, 15.0, ref_lin, 2.0))
     trajectory = ref_lin.get_ref_points(200)  # get reference line
     lat_controller = LatKmMpc_Controller(ts, horizon)  # create a lateral controller
     lon_controller = LongPid_Controller(1.5, 30.0)
