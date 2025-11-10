@@ -120,8 +120,8 @@ class vehicle_model:
         ax.add_patch(rect)
 
 if __name__ == "__main__":
-    E0Y = vehicle_model(
-        name="E0Y",
+    ego = vehicle_model(
+        name="ego",
         angle=20.0,
         kappa=0.05,
         velocity=0.0,
@@ -137,25 +137,25 @@ if __name__ == "__main__":
     ax.set_aspect("equal")
     plt.ion()  # 开启 交互模式
     for i in range(10):
-        points = E0Y.position()
+        points = ego.position()
         print(points)
         rect = patches.Polygon(
             points, linewidth=2, edgecolor="blue", facecolor="lightblue", alpha=0.7
         )
         ax.add_patch(rect)
-        E0Y.kinematic_Update(0, 10, 0.2)
+        ego.kinematic_Update(0, 10, 0.2)
         plt.pause(0.1)
-    E0Y.kappa = 0.0
-    E0Y.angle = 0.0
-    E0Y.X = 20.0
-    E0Y.Y = 20.0
+    ego.kappa = 0.0
+    ego.angle = 0.0
+    ego.X = 20.0
+    ego.Y = 20.0
     for i in range(10):
-        points = E0Y.position()
+        points = ego.position()
         rect = patches.Polygon(
             points, linewidth=2, edgecolor="red", facecolor="red", alpha=0.7
         )
         ax.add_patch(rect)
-        E0Y.kinematic_Update(0, 0.025)
+        ego.kinematic_Update(0, 0.025)
         plt.pause(0.1)
     # 关闭交互模式
     plt.ioff()

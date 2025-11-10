@@ -96,7 +96,7 @@ if __name__ == "__main__":
     ax.set_ylim(-10, 100)
     ax.set_aspect("equal")
     plt.ion()  # 开启 交互模式
-    for i in range(20):
+    for _ in range(20):
         ax.set_xlim(-10, 200)
         ax.set_ylim(-10, 100)
         ax.set_aspect("equal")

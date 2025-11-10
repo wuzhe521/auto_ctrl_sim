@@ -192,19 +192,19 @@ class LongPid_Controller:
 
 if __name__ == "__main__":
     planner_t = 10.0
-    E0Y = vehicle_model("E0Y", 0.0, 0.005, 10.0, 0.5, -5.0, -5.0)
+    ego = vehicle_model("ego", 0.0, 0.005, 10.0, 0.5, -5.0, -5.0)
     ref_lin = reference_line(-5.0, 0.005, 0.0005)
-    trajectory = ref_lin.get_ref_points(planner_t * E0Y.velocity)
+    trajectory = ref_lin.get_ref_points(planner_t * ego.velocity)
 
     controller = LatKmMpc_Controller(ts, horizon)
-    nearest_point = ref_lin.get_nearest_point(E0Y.X, E0Y.Y)
+    nearest_point = ref_lin.get_nearest_point(ego.X, ego.Y)
 
     ts = controller.ts
     horizon = controller.horizon
-    ds = [E0Y.velocity * ts * i for i in range(horizon)]
+    ds = [ego.velocity * ts * i for i in range(horizon)]
     control_ref = []
     for i in range(horizon):
         control_ref.append(ref_lin.get_point_from_S(nearest_point, ds[i]))
-    print(controller.Update(E0Y.get_vehicle_status(), control_ref))
+    print(controller.Update(ego.get_vehicle_status(), control_ref))
 
     print("pause")

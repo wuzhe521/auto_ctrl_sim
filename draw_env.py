@@ -40,7 +40,7 @@ if __name__ == "__main__":
     ref_lin = reference_line(10.0, 0.005, 0.002)  # create a reference line
     #########initialize##########
 
-    ego = vehicle_model("E0Y", 0.01, 0.002, 15.0, -4, 0, 20)  # create a vehicle model
+    ego = vehicle_model("ego", 0.01, 0.002, 15.0, -4, 0, 20)  # create a vehicle model
     sensor = target_sensor(ego)
     sensor.register(object("car", 1.9, 5.0, 20.0, 15.0, ref_lin))
     trajectory = ref_lin.get_ref_points(200)  # get reference line
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     lon_controller = LongPid_Controller(1.5, 30.0)
     #########figure setup#########
     fig, ax = plt.subplots()
-    fig.canvas.manager.window.showMaximized()
+    #fig.canvas.manager.
     fig.tight_layout()
     ax.set_facecolor("lightgreen")
     ax.set_xlim(-10, 200)
@@ -84,9 +84,10 @@ if __name__ == "__main__":
         #### get control reference point #####
         ds = [ego.velocity * ts * i for i in range(horizon)]
         control_ref = []
-        for i in range(horizon):
-            control_ref.append(ref_lin.get_point_from_S(nearest_point, ds[i]))
-
+        control_ref.extend(
+            ref_lin.get_point_from_S(nearest_point, ds[i])
+            for i in range(horizon)
+        )
         #### update controller and get control command #####
         kappa_rate = lat_controller.Update(ego.get_vehicle_status(), control_ref)
         acceleration = lon_controller.Update(ego, sensor.get_object_by_name("car"))
