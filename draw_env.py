@@ -31,10 +31,6 @@ from utilities import *
 
 
 if __name__ == "__main__":
-    ########sim settings##########
-    preview_t = 10.0  # Planner time horizon
-    control_ts = 0.2  # s
-    horizon = 10  # horizon length
 
     #########objects creation#####
     ref_lin = reference_line(10.0, 0.005, 0.002)  # create a reference line
