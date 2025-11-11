@@ -66,9 +66,9 @@ if __name__ == "__main__":
 
         plt.scatter(traj_x, traj_y, s=1, c="r")  # draw reference line in global frame
         show_time(ax= ax, loc_x= 0.05, loc_y= 0.95, time= i * ts) # show time
-        show_info(ax= ax, loc_x= 0.05, loc_y= 80, info= "velocity : " + str(ego.velocity) + " m/s \n" +
-                  "acceleration : " + str(ego.acceleration) + " m/s^2 \n" + 
-                  "kappa : " + str(ego.kappa) + " 1/m \n")
+        show_info(ax= ax, loc_x= 0.05, loc_y= 80, info= f"velocity : {ego.velocity}, m/s \n" +
+                  f"acceleration :  {ego.acceleration} m/s^2 \n" +  
+                  f"kappa :  + {ego.kappa} 1/m \n")
         ######## plot vehicle #####
         ego.plot_vehicle(ax=ax)
         sensor.plot_targets(ax=ax)
