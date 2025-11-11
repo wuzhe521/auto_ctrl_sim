@@ -32,6 +32,7 @@ class object:
         self.loc = self.ref_l.get_point_from_S(self.loc, ds)
         self.loc.x  -= self.offset * cos(self.loc.angle)
         self.loc.y  += self.offset * sin(self.loc.angle)
+        
     def position(self):
         """
         get vehicle 2D position in global coordinate
@@ -54,6 +55,7 @@ class object:
         right_rear_y = Y - self.Width / 2 * np.cos(angle)
         right_rear = (right_rear_x, right_rear_y)
         return [left_front, right_front, right_rear, left_rear]
+        
     def show_object(self, ax):
         loc = self.position()
         rect = patches.Polygon(
@@ -65,18 +67,19 @@ class target_sensor:
     def __init__(self, ego_vehicle: vehicle_model):
         self.Object_list : List[object] = []
         self.ego_ = ego_vehicle
+        
     def register(self, target : object):
         self.Object_list.append(target)
         return True
+        
     def Update(self, ts : float):
         if len(self.Object_list) > 0:
             for i in range(len(self.Object_list)):
                 self.Object_list[i].Update(ts)
+                
     def get_object_by_name(self, name : str) -> object:
-        for i in range(len(self.Object_list)):
-            if self.Object_list[i].name == name:
-                return self.Object_list[i]      
-        return None
+        return next((Object for Object in self.Object_list if Object.name == name), None)
+        
     def plot_targets(self, ax):
         for i in range(len(self.Object_list)):
             loc_target = self.Object_list[i].show_object(ax)
