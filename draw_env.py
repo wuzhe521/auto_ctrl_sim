@@ -1,18 +1,19 @@
 from vehicle_model import vehicle_model
 import matplotlib.pyplot as plt
-from referenceline import reference_line
+from referenceline import reference_line, straight_road, left_curve_road, right_curve_road
 from controller import LongPid_Controller, LatKmMpc_Controller, ts, horizon
 from object import object, target_sensor
 from utilities import *
 
 
+
 if __name__ == "__main__":
 
     #########objects creation#####
-    ref_lin = reference_line(10.0, 0.005, 0.002)  # create a reference line
+    ref_lin = straight_road  # create a reference line
     #########initialize##########
 
-    ego = vehicle_model("ego", 0.01, 0.002, 15.0, -4, 0, 20)  # create a vehicle model
+    ego = vehicle_model("ego", 0.01, 0.002, 15.0, -4, 0, 40)  # create a vehicle model
     sensor = target_sensor(ego)
     sensor.register(object("car", 1.9, 5.0, 20.0, 15.0, ref_lin, 2.0))
     trajectory = ref_lin.get_ref_points(200)  # get reference line
@@ -23,8 +24,8 @@ if __name__ == "__main__":
     #fig.canvas.manager.
     fig.tight_layout()
     ax.set_facecolor("lightgreen")
-    ax.set_xlim(-10, 200)
-    ax.set_ylim(-10, 100)
+    ax.set_xlim(field_size["x_min"], field_size["x_max"])
+    ax.set_ylim(field_size["y_min"], field_size["y_max"])
     plt.ion()  # 开启 交互模式
     show_start_message(ax=ax)
     plt.pause(2.0)
@@ -37,8 +38,8 @@ if __name__ == "__main__":
     ####### simulation loop######
     for i in range(50):
         # set x-axis from -10 to 10
-        ax.set_xlim(-10, 200)
-        ax.set_ylim(-10, 100)
+        ax.set_xlim(field_size["x_min"], field_size["x_max"])
+        ax.set_ylim(field_size["y_min"], field_size["y_max"])
 
         plt.scatter(traj_x, traj_y, s=1, c="r")  # draw reference line in global frame
         show_time(ax= ax, loc_x= 0.05, loc_y= 0.95, time= i * ts) # show time

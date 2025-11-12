@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as path_effects
 
+field_size  = {"x_min": -10, "x_max": 200, "y_min": -10, "y_max": 100}
 
 map_radius = [50, 200, 500, 1000, 1500, 5000]
 map_kappa = [1 / i for i in map_radius]

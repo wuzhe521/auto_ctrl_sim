@@ -5,6 +5,8 @@ from math import *
 from utilities import *
 from vehicle_model import vehicle_status
 
+
+
 Safe_distance = 0.5
 
 
@@ -149,7 +151,13 @@ class reference_line:
             max_velocity_vs_kappa(kappa),
             0.0
         )
+mid =  (field_size["y_max"] + field_size["y_min"]) / 2
 
+straight_road = reference_line(mid, 0.0, 0.0)
+
+left_curve_road = reference_line(mid, 0.05, 0.01)
+
+right_curve_road = reference_line(mid, -0.05, -0.01)
 
 # do some test
 if __name__ == "__main__":

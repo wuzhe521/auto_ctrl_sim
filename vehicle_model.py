@@ -119,6 +119,10 @@ class vehicle_model:
         )
         ax.add_patch(rect)
 
+
+
+
+
 if __name__ == "__main__":
     ego = vehicle_model(
         name="ego",
