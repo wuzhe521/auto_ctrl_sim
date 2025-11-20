@@ -4,7 +4,7 @@ from referenceline import reference_line, straight_road, left_curve_road, right_
 from controller import LongPid_Controller, LatKmMpc_Controller, ts, horizon
 from object import object, target_sensor
 from utilities import *
-from typing import List
+from typing import List, Dict
 
 
 if __name__ == "__main__":
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     #############################
     ####### data container ######   
     Hist_Sts : List[vehicle_status] = []
-    Hist_Cmd : dict[str, list] = {"kappa_cmd":[], "accel_cmd":[]}
+    Hist_Cmd : Dict[str, list] = {"kappa_cmd":[], "accel_cmd":[]}
     time : List[float] = []
     ####### simulation loop ######
     for i in range(50):
@@ -117,11 +117,11 @@ if __name__ == "__main__":
     axes[2].set_ylabel('ax')
     axes[2].grid(True)
     
-    axes[3].plot(time, Hist_Cmd["kappa_cmd"], c = 'r', label = 'kr_cmd')
+    axes[3].plot(time, Hist_Cmd["kappa_cmd"], c = 'y', label = 'kr_cmd')
     axes[3].set_ylabel('kappa_cmd')
     axes[3].grid(True)
     
-    axes[4].plot(time, Hist_Cmd["accel_cmd"], c = 'r', label = 'acc_cmd')
+    axes[4].plot(time, Hist_Cmd["accel_cmd"], c = 'purple', label = 'acc_cmd')
     axes[4].set_ylabel('acc_cmd')
     axes[4].grid(True)
 
