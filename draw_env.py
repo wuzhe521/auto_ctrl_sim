@@ -36,7 +36,8 @@ if __name__ == "__main__":
     traj_y = [p.y for p in trajectory]
     #############################
     ####### data container ######   
-    Hist_info : List[vehicle_status] = []
+    Hist_Sts : List[vehicle_status] = []
+    Hist_Cmd : dict[str, list] = {"kappa_cmd":[], "accel_cmd":[]}
     time : List[float] = []
     ####### simulation loop ######
     for i in range(50):
@@ -64,10 +65,7 @@ if __name__ == "__main__":
             ref_lin.get_point_from_S(nearest_point, ds[i])
             for i in range(horizon)
         )
-        #### store ego status #####
         ego_status = ego.get_vehicle_status()
-        Hist_info.append(ego_status)
-        time.append(i * ts) 
         #### update controller and get control command #####
         kappa_rate = lat_controller.Update(ego_status, control_ref)
         acceleration = lon_controller.Update(ego, sensor.get_object_by_name("car"))
@@ -79,7 +77,12 @@ if __name__ == "__main__":
         control_ref_x = [pt.x for pt in control_ref]
         control_ref_y = [pt.y for pt in control_ref]
         plt.scatter(control_ref_x, control_ref_y, s=10, c="b")
-
+        #### store ego status #####
+        
+        Hist_Sts.append(ego_status)
+        Hist_Cmd["kappa_cmd"].append(kappa_rate)
+        Hist_Cmd["accel_cmd"].append(acceleration)
+        time.append(i * ts) 
         ##### kinematic model update #####
         ego.kinematic_Update(
             kappa_rate=kappa_rate, acceleration=acceleration, dt=ts
@@ -99,20 +102,28 @@ if __name__ == "__main__":
     #####################################
     #########  Show Info History ########
     #####################################
-    fig2, axes = plt.subplots(3, 1)
+    fig2, axes = plt.subplots(5, 1)
     fig2.canvas.manager.set_window_title( "Ego Vehicle Motion Info")
-    kappa = [item.kappa for item in Hist_info]
+    kappa = [item.kappa for item in Hist_Sts]
     axes[0].plot(time, kappa, c = 'r', label = 'kappa')
     axes[0].set_ylabel('$\kappa$')
     axes[0].grid(True)
-    velocity = [item.velocity for item in Hist_info]
+    velocity = [item.velocity for item in Hist_Sts]
     axes[1].plot(time, velocity, c = 'b', label = 'velocity')
     axes[1].set_ylabel('$v$')
     axes[1].grid(True)
-    acceleration = [item.acceleration for item in Hist_info]
+    acceleration = [item.acceleration for item in Hist_Sts]
     axes[2].plot(time, acceleration, c = 'g', label = 'acceleration')
     axes[2].set_ylabel('ax')
     axes[2].grid(True)
+    
+    axes[3].plot(time, Hist_Cmd["kappa_cmd"], c = 'r', label = 'kr_cmd')
+    axes[3].set_ylabel('kappa_cmd')
+    axes[3].grid(True)
+    
+    axes[4].plot(time, Hist_Cmd["accel_cmd"], c = 'r', label = 'acc_cmd')
+    axes[4].set_ylabel('acc_cmd')
+    axes[4].grid(True)
 
     plt.show()
     
