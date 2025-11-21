@@ -32,7 +32,7 @@ class LatKmMpc_Controller:
                 [0.0, 0.0, 0.0, 2000.0],
             ]
         )
-        self.R = 10.0
+        self.R = 1000.0
         self.QN = self.Q
         # reference
         self.ref = []
@@ -73,7 +73,7 @@ class LatKmMpc_Controller:
                 [0.0, 0.0, 0.0, 1.0],
             ]
         )
-        Bd = sp.csc_matrix([[0.0], [0.0], [0.0], [1.0]])
+        Bd = sp.csc_matrix([[0.0], [0.0], [0.0], [1.0*ts]])
         Wd = sp.csc_matrix(
             [v0 * np.cos(theta0) * ts, v0 * np.sin(theta0) * ts, 0.0, 0.0]
         )
