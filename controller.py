@@ -6,6 +6,7 @@ from math import *
 import osqp
 import scipy.sparse as sp
 from object import object
+from proto import sim_debug_pb2
 
 ts = 0.2  # sample time
 horizon = 10  # horizon length
@@ -28,8 +29,8 @@ class LatKmMpc_Controller:
             [
                 [1.0, 0.0, 0.0, 0.0],
                 [0.0, 1.0, 0.0, 0.0],
-                [0.0, 0.0, 100.0, 0.0],
-                [0.0, 0.0, 0.0, 2000.0],
+                [0.0, 0.0, 10.0, 0.0],
+                [0.0, 0.0, 0.0, 10.0],
             ]
         )
         self.R = 1000.0
@@ -38,7 +39,9 @@ class LatKmMpc_Controller:
         self.ref = []
         # initial status
         self.init_status = vehicle_status(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-
+        ## controller command ##
+        self.lateral_cmd = 0.0
+        self.longitudinal_cmd = 0.0
     def Update(self, init_status: vehicle_status, trajectory) -> float:
         """
         Calculate the control command using Kinematic model and OSQP.
@@ -146,7 +149,7 @@ class LatKmMpc_Controller:
         res = prob.solve()
         # get control
         ctrl = res.x[-horizon * nu : -(horizon - 1) * nu]
-
+        self.lateral_cmd = ctrl[0]
         return ctrl[0]
 
     def get_ref_points(self, ref_points: list):
@@ -157,7 +160,8 @@ class LatKmMpc_Controller:
         """
         self.ref = ref_points
         return True
-
+    def debug_proto(self, debug_proto: sim_debug_pb2.controller_debug):
+        debug_proto.kappa_rate = self.lateral_cmd
 
 class LongPid_Controller:
     def __init__(self, headway: float, set_speed: int):
@@ -174,7 +178,8 @@ class LongPid_Controller:
         ### limit ###
         self.acc_max = 2.0
         self.acc_min = -2.0
-
+        ### controller command ###
+        self.longitudinal_cmd = 0.0
     def Update(self, ego_vehicle: vehicle_model, target_vehicle: object):
         target_s_gap = target_vehicle.velocity * self.headway
         current_s_gap = target_vehicle.s - ego_vehicle.s
@@ -187,9 +192,13 @@ class LongPid_Controller:
         outer_pid = self.P_pos * s_gap
         inner_pid = self.P_vel * (v_gap + outer_pid)
         lead_target_a = max(min(inner_pid, self.acc_max), self.acc_min)
-        return min(set_speed_a, lead_target_a)
+        self.longitudinal_cmd =  min(set_speed_a, lead_target_a)
+        return self.longitudinal_cmd
 
-
+    def debug_proto(self, debug_proto: sim_debug_pb2.controller_debug):
+        debug_proto.acceleration = self.longitudinal_cmd
+        
+        
 if __name__ == "__main__":
     planner_t = 10.0
     ego = vehicle_model("ego", 0.0, 0.005, 10.0, 0.5, -5.0, -5.0)

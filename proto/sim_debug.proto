@@ -1,0 +1,23 @@
+syntax = "proto2";
+
+
+message vehicle_state_debug {
+  optional float x = 1;
+  optional float y = 2;
+  optional float theta = 5;
+  optional float kappa = 6;
+  optional float velocity = 3;
+  optional float acceleration = 4;
+}
+
+message controller_debug {
+  optional float kappa_rate = 1;
+  optional float acceleration = 2;
+}
+
+message sim_debug {
+  repeated vehicle_state_debug vehicle_state_debug = 1;
+  repeated controller_debug controller_debug = 2;
+  repeated float times = 3;
+}
+

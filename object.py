@@ -5,6 +5,60 @@ from referenceline import reference_line, Point
 from vehicle_model import vehicle_model
 from math import *
 from typing import List
+from utilities import *
+
+road_type = {"yellow line": 0, "white line": 1, "road edge": 2, "fence": 3}
+
+
+class line_geometry:
+    def __init__(self):
+        self.x0 = 0.0
+        self.C0 = 0.0
+        self.C1 = 0.0
+        self.C2 = 0.0
+        self.type: int = 1
+
+
+class bev_road_sensor:
+    def __init__(self, name: str):
+        self.name = name
+        self.position = None
+        self.leftleft: line_geometry = None
+        self.left: line_geometry = None
+        self.right: line_geometry = None
+        self.rightright: line_geometry = None
+
+    def Update(self, sensor_loc: vehicle_model, ref_line: list[reference_line]):
+        global_x = sensor_loc.X
+        global_y = sensor_loc.Y
+        global_angle = sensor_loc.angle
+        global_s = sensor_loc.s
+        all_ref_left = []
+        all_ref_right = []
+        for item in ref_line:
+            if item.detectable == False: # if not detectable skip
+                continue
+            nearest_point = item.get_nearest_point(global_x, global_y)
+            kappa = nearest_point.kappa
+            x_n, y_n, angle_n = Coordinate_transform(
+                nearest_point.x,
+                nearest_point.y,
+                nearest_point.angle,
+                global_x,
+                global_y,
+                global_angle,
+            )
+            if y_n > 0.0:
+                all_ref_left.append(line_geometry(x_n, y_n, angle_n, kappa))
+            else:
+                all_ref_right.append(line_geometry(x_n, y_n, angle_n, kappa))
+        # sort line by y
+            all_ref_left = sorted(all_ref_left, key=lambda x: x.C0, reverse=True)
+            all_ref_right = sorted(all_ref_right, key=lambda x: x.C0)
+            self.left = all_ref_left.pop(0)
+            self.leftleft = all_ref_left.pop(0)
+            self.right = all_ref_right.pop(0)
+            self.rightright = all_ref_right.pop(0)
 
 class object:
     def __init__(
@@ -15,7 +69,7 @@ class object:
         s0: float,
         velocity: float,
         ref_line: reference_line,
-        offset: float = 0.0
+        offset: float = 0.0,
     ):
         self.Width = Width
         self.Length = Length
@@ -30,9 +84,9 @@ class object:
         ds = self.velocity * ts
         self.s += ds
         self.loc = self.ref_l.get_point_from_S(self.loc, ds)
-        self.loc.x  -= self.offset * cos(self.loc.angle)
-        self.loc.y  += self.offset * sin(self.loc.angle)
-        
+        self.loc.x -= self.offset * cos(self.loc.angle)
+        self.loc.y += self.offset * sin(self.loc.angle)
+
     def position(self):
         """
         get vehicle 2D position in global coordinate
@@ -55,7 +109,7 @@ class object:
         right_rear_y = Y - self.Width / 2 * np.cos(angle)
         right_rear = (right_rear_x, right_rear_y)
         return [left_front, right_front, right_rear, left_rear]
-        
+
     def show_object(self, ax):
         loc = self.position()
         rect = patches.Polygon(
@@ -63,33 +117,49 @@ class object:
         )
         ax.add_patch(rect)
 
-class target_sensor:
+
+class detect_sensor:
     def __init__(self, ego_vehicle: vehicle_model):
-        self.Object_list : List[object] = []
+        self.Object_list: List[object] = []
+        self.ref_line_list: List[reference_line] = []
+
+        self.bev_objects = []
         self.ego_ = ego_vehicle
-        
-    def register(self, target : object):
+        self.bev_road = bev_road_sensor("bev_road")
+    def register_object(self, target: object):
         self.Object_list.append(target)
         return True
-        
-    def Update(self, ts : float):
+    def register_ref_line(self, ref_line: reference_line):
+        self.ref_line_list.append(ref_line)
+        return True
+    def Update(self, ts: float):
+        # update objects
         if len(self.Object_list) > 0:
             for i in range(len(self.Object_list)):
                 self.Object_list[i].Update(ts)
-                
-    def get_object_by_name(self, name : str) -> object:
-        return next((Object for Object in self.Object_list if Object.name == name), None)
-        
+        # update bev_road sensor
+        if len(self.ref_line_list) > 0:
+            self.bev_road.Update(self.ego_, self.ref_line_list)
+
+    def get_object_by_name(self, name: str) -> object:
+        return next(
+            (Object for Object in self.Object_list if Object.name == name), None
+        )
+
     def plot_targets(self, ax):
         for i in range(len(self.Object_list)):
             loc_target = self.Object_list[i].show_object(ax)
-            
+
+
 if __name__ == "__main__":
 
     reference = reference_line(a0=10, a1=0.05, a2=0.002)
-    forward_object = object(
-        name="forward", Width=3, Length=5, s0=10, velocity=20, ref_line=reference
-    )
+
+    ego = vehicle_model("ego", 0.01, 0.002, 15.0, -4, 0, 40)  # create a vehicle model
+    sensor = detect_sensor(ego) # equipment sensor in ego vehicle
+    sensor.register_object(object("car", 1.9, 5.0, 20.0,100.0/3.6, reference, 1.7))
+    sensor.register_ref_line(reference)
+    trajectory = reference.get_ref_points(field_size["x_max"])  # get reference line
 
     trajectory_x = [pt.x for pt in reference.points]
     trajectory_y = [pt.y for pt in reference.points]
@@ -99,20 +169,17 @@ if __name__ == "__main__":
     ax.set_ylim(-10, 100)
     ax.set_aspect("equal")
     plt.ion()  # 开启 交互模式
-    for _ in range(20):
+    for _ in range(30):
         ax.set_xlim(-10, 200)
         ax.set_ylim(-10, 100)
         ax.set_aspect("equal")
-        loc = forward_object.position()
-        rect = patches.Polygon(
-            loc, linewidth=2, edgecolor="blue", facecolor="lightblue", alpha=0.7
-        )
+        sensor.plot_targets(ax=ax)
         plt.scatter(trajectory_x, trajectory_y, s=2, color="b")
-        ax.add_patch(rect)
         # Update
-        forward_object.Update(0.2)
+        sensor.Update(0.2)
         plt.pause(0.2)
         ax.cla()
+    
     # 关闭交互模式
     plt.ioff()
     ax.set_xlim(-10, 200)

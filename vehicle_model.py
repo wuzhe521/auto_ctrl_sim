@@ -3,8 +3,7 @@ import scipy as sp
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from scipy import sparse
-
-
+from proto import sim_debug_pb2
 class vehicle_status:
     def __init__(
         self,
@@ -45,7 +44,7 @@ class vehicle_model:
                 kappa_rate: kappa rate
                 dt: sample time
         """
-        kappa_rate = max(min(kappa_rate, 0.05), -0.05)
+        # kappa_rate = max(min(kappa_rate, 0.05), -0.05)
         self.kappa = self.kappa + kappa_rate * dt
         delta_theta = self.kappa * self.velocity * dt
         self.Y = (
@@ -119,7 +118,14 @@ class vehicle_model:
         )
         ax.add_patch(rect)
 
-
+    def debug_proto(self, debug_proto: sim_debug_pb2.vehicle_state_debug):
+        # debug_proto.name = self.name
+        debug_proto.x = self.X
+        debug_proto.y = self.Y
+        debug_proto.theta = self.angle
+        debug_proto.kappa = self.kappa
+        debug_proto.velocity = self.velocity
+        debug_proto.acceleration = self.acceleration
 
 
 
@@ -140,7 +146,7 @@ if __name__ == "__main__":
     ax.set_ylim(-10, 100)
     ax.set_aspect("equal")
     plt.ion()  # 开启 交互模式
-    for i in range(10):
+    for _ in range(10):
         points = ego.position()
         print(points)
         rect = patches.Polygon(
@@ -153,7 +159,7 @@ if __name__ == "__main__":
     ego.angle = 0.0
     ego.X = 20.0
     ego.Y = 20.0
-    for i in range(10):
+    for _ in range(10):
         points = ego.position()
         rect = patches.Polygon(
             points, linewidth=2, edgecolor="red", facecolor="red", alpha=0.7

@@ -38,7 +38,7 @@ class reference_line:
         self.a1 = a1
         self.a2 = a2
         self.points = self.get_ref_points(500)
-
+        self.detectable = False   # This is a center line cannot be detected by camera
     def get_point(self, dist: float):
         """
         根据给定距离[X - direction]，返回参考线点。
@@ -100,7 +100,7 @@ class reference_line:
 
     def get_point_from_S(self, nearest_point: Point, ds: float):
         """
-        根据s值，返回参考线点。
+        根据s值, 返回参考线点。
 
             Args:
                 nearest_point (Point): 最近点
