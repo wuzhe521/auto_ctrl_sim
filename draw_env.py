@@ -12,7 +12,7 @@ from object import object, detect_sensor
 from utilities import *
 from typing import List, Dict
 from proto import sim_debug_pb2
-from replay_data import sim_data_recorder
+from replay_data import sim_data_recorder, sim_data_player
 
 
 ######### recorder creation #######
@@ -20,9 +20,9 @@ debugger = sim_debug_pb2.sim_debug()
 vehicle_state_debug = sim_debug_pb2.vehicle_state_debug()
 controller_debug = sim_debug_pb2.controller_debug()
 recorder = sim_data_recorder("test")
-
+player = sim_data_player()
 if __name__ == "__main__":
-    #########objects creation#####
+    #########objects creation##### 
     ref_lin = straight_road  # create a reference line
     ego = vehicle_model("ego", 0.01, 0.002, 15.0, -4, 0, 40)  # create a vehicle model
     sensor = detect_sensor(ego)  # equipment sensor in ego vehicle
@@ -123,5 +123,9 @@ if __name__ == "__main__":
     #####################################
     
     recorder.save_data(debugger)
+    plt.close()
+    player.analyze_data()
+
+
 
     
