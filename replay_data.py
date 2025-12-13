@@ -45,44 +45,58 @@ class sim_data_player:
         self.loaded_object = None
 
     def analyze_data(self):
+        
         file_name = tkinter.filedialog.askopenfilename(
             title="select replay data file", filetypes=[("Pickle Files", "*.pkl")]
         )
-        print(type(file_name))
-        if os.path.isfile(file_name) == False:
-            print("file not found")
+    
+        # Handle case where user cancels the dialog
+        if not file_name:
+            print("No file selected.")
             return
-        with open(file_name, "rb") as file:
-            self.loaded_object = pickle.load(file)
+    
+        try:
+            with open(file_name, "rb") as file:
+                self.loaded_object = pickle.load(file)
+        except Exception as e:
+            print(f"Failed to load file: {e}")
+            return
+    
         #####################################
         #########  Show Info History ########
         #####################################
         fig2, axes = plt.subplots(5, 1)
         fig2.canvas.manager.set_window_title("Ego Vehicle Motion Info")
+    
         Hist_Sts = self.loaded_object.vehicle_state_debug
         Hist_Cmd = self.loaded_object.controller_debug
         time = self.loaded_object.times
+    
         kappa = [item.kappa for item in Hist_Sts]
         axes[0].plot(time, kappa, c="r", label="kappa")
         axes[0].set_ylabel("$\kappa$")
         axes[0].grid(True)
+    
         velocity = [item.velocity for item in Hist_Sts]
         axes[1].plot(time, velocity, c="b", label="velocity")
         axes[1].set_ylabel("$v$")
         axes[1].grid(True)
-        acceleration = [item.acceleration for item in Hist_Sts]
-        axes[2].plot(time, acceleration, c="g", label="acceleration")
+    
+        acceleration_sts = [item.acceleration for item in Hist_Sts]
+        axes[2].plot(time, acceleration_sts, c="g", label="acceleration")
         axes[2].set_ylabel("ax")
         axes[2].grid(True)
-
+    
         kappa_rate = [item.kappa_rate for item in Hist_Cmd]
         axes[3].plot(time, kappa_rate, c="y", label="kappa_rate")
         axes[3].set_ylabel("kappa_rate")
         axes[3].grid(True)
-        acceleration = [item.acceleration for item in Hist_Cmd]
-        axes[4].plot(time, acceleration, c="b", label="acceleration")
+    
+        acceleration_cmd = [item.acceleration for item in Hist_Cmd]
+        axes[4].plot(time, acceleration_cmd, c="b", label="acceleration")
         axes[4].set_ylabel("a")
         axes[4].grid(True)
+    
         plt.show()
 
 

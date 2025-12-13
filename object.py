@@ -28,7 +28,7 @@ class bev_road_sensor:
         self.right: line_geometry = None
         self.rightright: line_geometry = None
 
-    def Update(self, sensor_loc: vehicle_model, ref_line: list[reference_line]):
+    def Update(self, sensor_loc: vehicle_model, ref_line: list[reference_line]) -> None:
         global_x = sensor_loc.X
         global_y = sensor_loc.Y
         global_angle = sensor_loc.angle
@@ -93,22 +93,34 @@ class object:
             output:
                 points: 4 corner points of vehicle in global coordinate
         """
-        angle = self.loc.angle
-        X = self.loc.x
-        Y = self.loc.y
-        left_front_x = X + self.Length * np.cos(angle) - self.Width / 2 * np.sin(angle)
-        left_front_y = Y + self.Length * np.sin(angle) + self.Width / 2 * np.cos(angle)
-        left_front = (left_front_x, left_front_y)
-        right_front_x = X + self.Length * np.cos(angle) + self.Width / 2 * np.sin(angle)
-        right_front_y = Y + self.Length * np.sin(angle) - self.Width / 2 * np.cos(angle)
-        right_front = (right_front_x, right_front_y)
-        left_rear_x = X - self.Width / 2 * np.sin(angle)
-        left_rear_y = Y + self.Width / 2 * np.cos(angle)
-        left_rear = (left_rear_x, left_rear_y)
-        right_rear_x = X + self.Width / 2 * np.sin(angle)
-        right_rear_y = Y - self.Width / 2 * np.cos(angle)
-        right_rear = (right_rear_x, right_rear_y)
-        return [left_front, right_front, right_rear, left_rear]
+        # Validate required attributes
+        if not hasattr(self, 'loc') or self.loc is None:
+            raise AttributeError("Vehicle location (self.loc) is missing or None.")
+        if not all(hasattr(self.loc, attr) for attr in ['x', 'y', 'angle']):
+            raise AttributeError("Location object must have x, y, and angle attributes.")
+    
+        try:
+            angle = self.loc.angle
+            X = self.loc.x
+            Y = self.loc.y
+    
+            cos_angle = np.cos(angle)
+            sin_angle = np.sin(angle)
+    
+            half_width_sin = (self.Width / 2) * sin_angle
+            half_width_cos = (self.Width / 2) * cos_angle
+            length_cos = self.Length * cos_angle
+            length_sin = self.Length * sin_angle
+    
+            left_front = (X + length_cos - half_width_sin, Y + length_sin + half_width_cos)
+            right_front = (X + length_cos + half_width_sin, Y + length_sin - half_width_cos)
+            left_rear = (X - half_width_sin, Y + half_width_cos)
+            right_rear = (X + half_width_sin, Y - half_width_cos)
+    
+            return [left_front, right_front, right_rear, left_rear]
+    
+        except Exception as e:
+            raise RuntimeError(f"Error calculating vehicle position: {str(e)}")
 
     def show_object(self, ax):
         loc = self.position()
